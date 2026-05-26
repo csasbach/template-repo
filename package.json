@@ -1,0 +1,22 @@
+{
+  "name": "my-project",
+  "private": true,
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "prepare": "husky",
+    "audit": "echo 'Add: npm audit && npm audit --prefix server && npm audit --prefix client'",
+    "audit:deps": "node scripts/check-deprecations.js",
+    "lint": "echo 'Add: npx eslint src --max-warnings 0'",
+    "format": "npx prettier --write \"**/*.{ts,tsx,json,md,yaml,yml}\"",
+    "format:check": "npx prettier --check \"**/*.{ts,tsx,json,md,yaml,yml}\"",
+    "build": "echo 'Add: npm run build'",
+    "gate": "echo 'Add: tests + coverage + build'"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
+    "prettier": "^3.8.3"
+  }
+}

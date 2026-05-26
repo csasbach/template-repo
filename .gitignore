@@ -1,0 +1,24 @@
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Node
+node_modules/
+dist/
+
+# Rust
+*/target/
+
+# Test results
+test-results/
+playwright-report/
+
+# Coverage
+coverage/
+*/coverage/

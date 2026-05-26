@@ -1,0 +1,11 @@
+# ── Dependency lock integrity ──────────────────────────
+npm ls --depth=0 --production 2>/dev/null || echo "⚠️  npm production deps out of sync — run npm install"
+
+# ── Security scans ─────────────────────────────────────
+npm run audit:deps 2>/dev/null
+
+# ── Tests ──────────────────────────────────────────────
+# Add project-specific test scripts here
+
+# ── Coverage ─────────────────────────────────────────────
+# Add coverage check here
