@@ -9,6 +9,14 @@ npm start           # Launch the application
 
 ## Process
 
+### First Principles
+
+Before writing any code, apply these principles:
+
+1. **Prefer existing patterns** — Check how similar problems are solved elsewhere in the codebase before choosing an approach.
+2. **No inline generated scripts** — Never use `node -e "..."` or `eval()` with generated JavaScript strings. Shell-escaping rules differ across platforms, leading to silent failures. If a child process is needed, use `child_process.fork()` with a dedicated file.
+3. **Render independently** — Every UI section renders as soon as its data arrives. Full-screen loading spinners that hide already-available data are not allowed for non-blocking background operations.
+
 ### Before Branch Creation
 
 Before creating any new feature branch, always:
@@ -47,6 +55,13 @@ Every feature starts with failing tests, then implementation:
 10. User approves
 11. User says "merge it" → agent merges: gh pr merge --squash
 ```
+
+**Before every PR, the agent checks:**
+
+- ☐ Is this the simplest approach that matches existing patterns in the codebase?
+- ☐ Does each UI component render independently when its data arrives (no unnecessary blocking)?
+- ☐ If using child processes, is it a dedicated file (not an inline script)?
+- ☐ Have the E2E tests been run against the actual startup path?
 
 **Rules:**
 
