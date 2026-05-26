@@ -20,6 +20,9 @@ Before writing any code, apply these principles:
 5. **Clean stale state between iterations** — Before each test iteration, delete or reset any files, processes, ports, or state that the code under test reads or writes. Start fresh every iteration.
 6. **When a fix doesn't work after two attempts, the hypothesis is wrong** — Stop and investigate external state (files on disk, running processes, port bindings) before trying another approach.
 7. **Test paths must match real paths** — Tests must use the same file paths, environment variables, and configuration as the real execution.
+8. **Manually validate before opening a PR** — After unit tests pass, run the real entry point and verify the fix works before creating the PR.
+9. **When investigating failures, check observable evidence first** — Check logs, response bodies, files on disk, and process listings before forming a hypothesis.
+10. **Trace the full data flow end-to-end** — Verify every step of the data path (input → processing → output → persistence → retrieval) rather than guessing where the gap is.
 
 ### Before Branch Creation
 
