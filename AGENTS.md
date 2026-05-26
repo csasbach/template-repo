@@ -17,6 +17,9 @@ Before writing any code, apply these principles:
 2. **No inline generated scripts** — Never use `node -e "..."` or `eval()` with generated JavaScript strings. Shell-escaping rules differ across platforms, leading to silent failures. If a child process is needed, use `child_process.fork()` with a dedicated file.
 3. **Render independently** — Every UI section renders as soon as its data arrives. Full-screen loading spinners that hide already-available data are not allowed for non-blocking background operations.
 4. **Prove changes with real-world behavioral tests** — Before presenting any change for user review, the agent must first reproduce the exact behavioral failure the user reported (run the same command, observe the same wrong result). Then write a formal test that exercises the real entry point and validates the observable outcome. If the code prevents testing the real entry point, restructure it. Iterate until the test passes. Then run the full gate. Only then present the PR for review.
+5. **Clean stale state between iterations** — Before each test iteration, delete or reset any files, processes, ports, or state that the code under test reads or writes. Start fresh every iteration.
+6. **When a fix doesn't work after two attempts, the hypothesis is wrong** — Stop and investigate external state (files on disk, running processes, port bindings) before trying another approach.
+7. **Test paths must match real paths** — Tests must use the same file paths, environment variables, and configuration as the real execution.
 
 ### Before Branch Creation
 
