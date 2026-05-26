@@ -16,6 +16,7 @@ Before writing any code, apply these principles:
 1. **Prefer existing patterns** — Check how similar problems are solved elsewhere in the codebase before choosing an approach.
 2. **No inline generated scripts** — Never use `node -e "..."` or `eval()` with generated JavaScript strings. Shell-escaping rules differ across platforms, leading to silent failures. If a child process is needed, use `child_process.fork()` with a dedicated file.
 3. **Render independently** — Every UI section renders as soon as its data arrives. Full-screen loading spinners that hide already-available data are not allowed for non-blocking background operations.
+4. **Prove changes with real-world automated tests** — Before presenting any change for user review, the agent must have proven the change works via an automated test that validates observable real-world behavior. The test must exercise the actual code path without mocks. If a change genuinely cannot be tested, document the gap and get explicit user permission to skip.
 
 ### Before Branch Creation
 
