@@ -9,20 +9,26 @@ npm start           # Launch the application
 
 ## Process
 
-### First Principles
+### Iteration Cycle
 
-Before writing any code, apply these principles:
+Every fix follows strict DAG gates — no skipping:
 
-1. **Prefer existing patterns** — Check how similar problems are solved elsewhere in the codebase before choosing an approach.
-2. **No inline generated scripts** — Never use `node -e "..."` or `eval()` with generated JavaScript strings. Shell-escaping rules differ across platforms, leading to silent failures. If a child process is needed, use `child_process.fork()` with a dedicated file.
-3. **Render independently** — Every UI section renders as soon as its data arrives. Full-screen loading spinners that hide already-available data are not allowed for non-blocking background operations.
-4. **Prove changes with real-world behavioral tests** — Before presenting any change for user review, the agent must first reproduce the exact behavioral failure the user reported (run the same command, observe the same wrong result). Then write a formal test that exercises the real entry point and validates the observable outcome. If the code prevents testing the real entry point, restructure it. Iterate until the test passes. Then run the full gate. Only then present the PR for review.
-5. **Clean stale state between iterations** — Before each test iteration, delete or reset any files, processes, ports, or state that the code under test reads or writes. Start fresh every iteration.
-6. **When a fix doesn't work after two attempts, the hypothesis is wrong** — Stop and investigate external state (files on disk, running processes, port bindings) before trying another approach.
-7. **Test paths must match real paths** — Tests must use the same file paths, environment variables, and configuration as the real execution.
-8. **Manually validate before opening a PR** — After unit tests pass, run the real entry point and verify the fix works before creating the PR.
-9. **When investigating failures, check observable evidence first** — Check logs, response bodies, files on disk, and process listings before forming a hypothesis.
-10. **Trace the full data flow end-to-end** — Verify every step of the data path (input → processing → output → persistence → retrieval) rather than guessing where the gap is.
+```
+1. REPRODUCE — Run the real entry point the user reported.
+   Collect evidence: logs, response body, file state.
+2. HYPOTHESIS — Based on evidence, state what is wrong and what the fix must achieve.
+3. EXPERIMENT — Write a failing test that reproduces the exact bug (red).
+4. IMPLEMENT — Write minimal code. The test passes (green).
+5. VERIFY — Run the full gate: unit tests, lint, E2E, coverage.
+6. MANUAL VALIDATE — Run the real entry point again. Confirm fix works.
+7. PR — Only after step 6 passes.
+```
+
+### Rules
+
+1. **Evidence before hypothesis** — Before forming a theory, check logs, files, ports, and response bodies. Hypothesis without evidence is guessing.
+2. **Test the real entry point** — Every test must exercise the same command/URL the user uses. After all tests pass, manually validate before opening a PR.
+3. **One DAG gate at a time** — Reproduce → evidence → hypothesis → experiment → implement → validate → PR. No skipping. If a gate fails, go back to the previous gate.
 
 ### Before Branch Creation
 
