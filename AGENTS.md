@@ -88,6 +88,7 @@ Before creating any new feature branch, always:
 ```
 
 **PR body checklist:**
+
 - [ ] `npm run gate` passes locally
 - [ ] CI shows green
 - [ ] New code has tests
@@ -95,19 +96,20 @@ Before creating any new feature branch, always:
 - [ ] AGENTS.md learnings log updated if applicable
 
 **Rules:**
+
 - Never push directly to main
 - Zero tolerance: all warnings resolved
 - Agent MUST STOP after creating a PR
 
 ### Test Categories
 
-| Tag | Means | Runs fast | Example |
-|-----|-------|-----------|---------|
-| `[spec]` | Feature contract | Yes | Returns 200 |
-| (none) | Fast edge case | Yes | 404 on unknown |
-| `[slow]` | Takes >10s | No | Integration |
-| `[e2e]` | Browser test | No | Full flow |
-| `[coverage-safe]` | Low regression value | No | Improbable input |
+| Tag               | Means                | Runs fast | Example          |
+| ----------------- | -------------------- | --------- | ---------------- |
+| `[spec]`          | Feature contract     | Yes       | Returns 200      |
+| (none)            | Fast edge case       | Yes       | 404 on unknown   |
+| `[slow]`          | Takes >10s           | No        | Integration      |
+| `[e2e]`           | Browser test         | No        | Full flow        |
+| `[coverage-safe]` | Low regression value | No        | Improbable input |
 
 ### Code Quality Gate
 
@@ -126,6 +128,6 @@ Production deps exact, dev deps float. Lockfiles committed and enforced.
 
 ## Learnings Log
 
-| Date | Lesson | Codified in |
-|------|--------|-------------|
+| Date       | Lesson                                                                     | Codified in        |
+| ---------- | -------------------------------------------------------------------------- | ------------------ |
 | 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push | AGENTS.md, .husky/ |
