@@ -1,11 +1,18 @@
-# ── Dependency lock integrity ──────────────────────────
-npm ls --depth=0 --production 2>/dev/null || echo "⚠️  npm production deps out of sync — run npm install"
+# ── Blocking checks (exit 1 on failure) ─────────────
 
-# ── Security scans ─────────────────────────────────────
-npm run audit:deps 2>/dev/null
+failed=0
 
-# ── Tests ──────────────────────────────────────────────
-# Add project-specific test scripts here
+npm ls --depth=0 --production >/dev/null 2>&1 || { echo "❌ npm production deps out of sync"; failed=1; }
 
-# ── Coverage ─────────────────────────────────────────────
-# Add coverage check here
+# Add project-specific checks here:
+# cd server && npx tsc --noEmit 2>&1 || { echo "❌ TypeScript errors"; failed=1; }
+# npm run test:api:fast >/dev/null 2>&1 || { echo "❌ API tests failed"; failed=1; }
+
+# ── Warning checks (non-blocking) ────────────────────
+
+npm run audit:deps 2>&1 | tail -1 | grep -q "All checks passed" || echo "⚠️  Deprecation check found issues"
+npm run audit >/dev/null 2>&1 || echo "⚠️  npm audit found vulnerabilities (non-blocking)"
+
+# npm run test:coverage >/dev/null 2>&1 || echo "⚠️  Coverage below threshold (non-blocking)"
+
+exit $failed

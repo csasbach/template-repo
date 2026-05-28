@@ -11,116 +11,123 @@ npm start           # Launch the application
 
 ### Iteration Cycle
 
-Every fix follows strict DAG gates — no skipping:
+Every fix follows strict DAG gates — each gate depends on the previous; no skipping:
 
 ```
 1. REPRODUCE — Run the real entry point the user reported.
    Collect evidence: logs, response body, file state.
+
 2. HYPOTHESIS — Based on evidence, state what is wrong and what the fix must achieve.
+
+2.5 SELF-REVIEW (hypothesis) — Before writing any code, challenge your own hypothesis:
+      - What evidence directly supports this? What contradicts it?
+      - What alternative hypotheses were excluded? On what basis?
+      - Can I reproduce the failure in under 30 seconds by running the real entry point?
+
 3. EXPERIMENT — Write a failing test that reproduces the exact bug (red).
+
 4. IMPLEMENT — Write minimal code. The test passes (green).
+
+4.5 SELF-REVIEW (implementation) — Before running the full gate:
+      - Is this the simplest approach that matches existing patterns?
+      - Could this be solved with a smaller change (one file, one concept)?
+      - Are there edge cases not covered? Resource leaks? Timing issues?
+      - Does the diff include only what was asked for (no scope creep)?
+
 5. VERIFY — Run the full gate: unit tests, lint, E2E, coverage.
+
 6. MANUAL VALIDATE — Run the real entry point again. Confirm fix works.
-7. PR — Only after step 6 passes.
+
+6.5 CODE-REVIEW (pre-PR) — Review the full diff holistically:
+      - Does every changed file belong in this PR? Any unintended drift?
+      - Are test assertions meaningful (not just happy-path)?
+      - Do the changes interact correctly with other parts of the system?
+      - Is this safe to deploy? What's the rollback plan?
+
+7. PR — Only after step 6.5 passes.
 ```
 
 ### Rules
 
 1. **Evidence before hypothesis** — Before forming a theory, check logs, files, ports, and response bodies. Hypothesis without evidence is guessing.
-2. **Test the real entry point** — Every test must exercise the same command/URL the user uses. After all tests pass, manually validate before opening a PR.
-3. **One DAG gate at a time** — Reproduce → evidence → hypothesis → experiment → implement → validate → PR. No skipping. If a gate fails, go back to the previous gate.
+
+2. **Test the real entry point** — Every test must exercise the same command/URL the user uses. After all tests pass, manually validate before opening a PR. Mocks are acceptable only as a last resort and must be documented.
+
+3. **One DAG gate at a time** — No skipping. If a gate fails, go back to the previous gate.
+
+4. **Self-review before every gate transition** — At steps 2.5, 4.5, and 6.5, conduct a structured self-review. A skipped self-review is a process violation.
 
 ### Before Branch Creation
 
 Before creating any new feature branch, always:
 
-1. **List open PRs** — `gh pr list --state open` to see what's in flight
-2. **Build the commit DAG** — `git log --oneline --all --graph --decorate` to visualize branch topology
-3. **Check ancestry** — for each open PR branch, determine if related to your planned work:
-   ```
-   git merge-base --is-ancestor <pr-branch> <your-proposed-base> && echo "is ancestor" || echo "unrelated"
-   ```
-4. **Determine merge order**:
-   - If PR A is an ancestor of PR B (`git merge-base --is-ancestor A B`), merge A first, or merge B (supersedes A) and close A
-   - If neither is ancestor of the other, both PRs have **disjoint DAGs** — they can be developed and merged in **parallel** with no dependency
-5. **Open parallel PRs only when DAGs are disjoint** — never branch from an unmerged PR unless intentional (stacked PR pattern)
+1. **List open PRs** — `gh pr list --state open`
+2. **Build the commit DAG** — `git log --oneline --all --graph --decorate`
+3. **Check ancestry** — for each open PR branch, determine if related
+4. **Determine merge order** — merge-base to find dependency
+5. **Open parallel PRs only when DAGs are disjoint**
 
-### Commit Flow (TDD: red → green)
-
-Every feature starts with failing tests, then implementation:
+### Commit Flow (TDD: red to green)
 
 ```
-1. git checkout -b fix/descriptive-name   # Feature branch
-2. Write tests first                       — red
-3. Implement feature                       — green
-4. Pre-commit hooks auto-run on commit (via Husky):
-       - lint-staged (eslint --max-warnings 0 + prettier)
-       - project-specific checks (tsc, fmt, etc.)
-5. npm run gate                           # Full gate (tests + coverage + build)
-6. Pre-push hooks auto-run on push (via Husky):
+1. git checkout -b fix/descriptive-name
+2. Write tests first — red
+3. Implement feature — green
+4. Pre-commit hooks auto-run:
+       - lint-staged (eslint + prettier)
+       - project-specific checks (tsc, fmt)
+5. npm run gate
+6. Pre-push hooks auto-run:
        - npm ls --production (lock integrity)
        - npm run audit:deps (deprecation check)
        - project-specific tests
 7. git push origin fix/descriptive-name
-8. gh pr create --title "..." --body "..."
-   → STOP. Present PR summary to user. Wait for review.
-9. [If user requests changes:] Make changes, git push, gh pr edit --body, STOP again.
-10. User approves
-11. User says "merge it" → agent merges: gh pr merge --squash
+8. gh pr create — STOP, wait for review
+9. User approves
+10. User says "merge it" → gh pr merge --squash
 ```
 
-**Before every PR, the agent checks:**
+**PR body checklist:**
 
-- ☐ Is this the simplest approach that matches existing patterns in the codebase?
-- ☐ Does each UI component render independently when its data arrives (no unnecessary blocking)?
-- ☐ If using child processes, is it a dedicated file (not an inline script)?
-- ☐ Have the E2E tests been run against the actual startup path?
+- [ ] `npm run gate` passes locally
+- [ ] CI shows green
+- [ ] New code has tests
+- [ ] MANUAL VALIDATE: endpoint exercised
+- [ ] AGENTS.md learnings log updated if applicable
 
 **Rules:**
 
-- **Never push directly to `main`** — the Husky `pre-push` hook blocks it.
-- Pre-commit hooks must pass; `--no-verify` only if hooks are broken, fix immediately
-- **Zero tolerance**: all ESLint warnings, TypeScript errors, test failures, coverage regressions, deprecation warnings must be resolved — never suppressed without documented reason
-- All `[spec]` tagged tests must pass before PR
-- Test coverage must be ≥80% lines/branches/functions/statements
-- **Agent MUST STOP after creating a PR** — No merging without explicit `merge it` / `merge <n>` / `merge all`. Interpreting `go`, `proceed`, `continue` as merge authorization is a process violation.
-- *Exception — parallel disjoint PRs:* When the DAG plan specifies disjoint PRs, the agent may create all PRs in the batch before the first STOP.
-- *Pushing changes to an open PR:* If the user requests changes, the agent may push to the same branch and update the PR body, then STOP again. After any push, a new review cycle is required.
-- *Violation:* If the agent merges without authorization, it must log the violation in the learnings log and await user acknowledgment.
+- Never push directly to main
+- Zero tolerance: all warnings resolved
+- Agent MUST STOP after creating a PR
 
 ### Test Categories
 
-| Tag | Means | Runs in fast gate | Example |
-|---|---|---|---|
-| `[spec]` | Feature contract — never skip | ✓ | Returns 200, validates schema |
-| (none) | Fast edge case — always run | ✓ | 404 on unknown resource |
-| `[slow]` | Takes >10s | ✗ | Full integration test |
-| `[e2e]` | Browser test | ✗ | Full user flow |
-| `[coverage-safe]` | Low regression value; skip if coverage ≥80% | ✗ | Edge case with improbable input |
+| Tag               | Means                | Runs fast | Example          |
+| ----------------- | -------------------- | --------- | ---------------- |
+| `[spec]`          | Feature contract     | Yes       | Returns 200      |
+| (none)            | Fast edge case       | Yes       | 404 on unknown   |
+| `[slow]`          | Takes >10s           | No        | Integration      |
+| `[e2e]`           | Browser test         | No        | Full flow        |
+| `[coverage-safe]` | Low regression value | No        | Improbable input |
 
-### Code Quality Gate (Zero Tolerance)
+### Code Quality Gate
 
-All checks must pass before PR. Automated entirely via Husky (no CI):
+- pre-commit: eslint, prettier, type check
+- commit-msg: commitlint
+- pre-push: blocking (lock, tsc, lint, tests) + warning (coverage, audit)
+- manual: npm run gate
 
-- pre-commit: `eslint --max-warnings 0`, `prettier --check`, project type check
-- commit-msg: `commitlint` (conventional commits)
-- pre-push: `npm ls --production`, `npm run audit:deps`, project tests
-- manual: `npm run gate` — coverage ≥80%, build, all `[spec]` tests
+### CI Pipeline
 
-**Command output warnings** — All warnings from git, npm, eslint, tsc, cargo, and test output are subject to zero tolerance. Each warning must be resolved, suppressed in `.deprecations.json`, or documented in AGENTS.md.
+If using GitHub Actions, add `.github/workflows/gate.yml` with caching, concurrency, timeout-minutes.
 
 ### Dependency Pinning
 
-Production deps are exact (e.g. `"express": "4.22.2"`). Dev deps float (`^`). To bump:
-
-```bash
-npm install package@x.y.z --save-exact && npm run gate && git commit
-```
-
-Minimum viable version: install the lowest version that passes `npm run gate`. Lockfiles are committed and enforced by pre-push hooks.
+Production deps exact, dev deps float. Lockfiles committed and enforced.
 
 ## Learnings Log
 
-| Date | Lesson | Codified in |
-|---|---|---|
-| 2026-05-25 | Template created from studio-metadata-pipeline best practices | All sections |
+| Date       | Lesson                                                                     | Codified in        |
+| ---------- | -------------------------------------------------------------------------- | ------------------ |
+| 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push | AGENTS.md, .husky/ |

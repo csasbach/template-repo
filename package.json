@@ -4,13 +4,18 @@
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "prepare": "husky",
-    "audit": "echo 'Add: npm audit && npm audit --prefix server && npm audit --prefix client'",
+    "audit": "echo TODO: add npm audit --prefix server and --prefix client",
     "audit:deps": "node scripts/check-deprecations.js",
-    "lint": "echo 'Add: npx eslint src --max-warnings 0'",
+    "lint": "echo TODO: add npx eslint src --max-warnings 0",
     "format": "npx prettier --write \"**/*.{ts,tsx,json,md,yaml,yml}\"",
     "format:check": "npx prettier --check \"**/*.{ts,tsx,json,md,yaml,yml}\"",
-    "build": "echo 'Add: npm run build'",
-    "gate": "echo 'Add: tests + coverage + build'"
+    "test:api": "echo TODO: add npx vitest run in server",
+    "test:api:fast": "echo TODO: add npx vitest run --testNamePattern in server",
+    "test:spa": "echo TODO: add npx vitest run in client",
+    "test:spa:fast": "echo TODO: add npx vitest run --testNamePattern in client",
+    "test:all": "npm run test:api && npm run test:spa",
+    "build": "echo TODO: add npm run build",
+    "gate": "npm run lint && npm run format:check && npm run test:spa && echo TODO: add coverage + build"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
