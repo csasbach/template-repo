@@ -1,5 +1,7 @@
 # Project: my-project
 
+> **At task start:** Read this file in full before taking any action. New rules and gates have been added over time — don't rely on memory.
+
 ## Quick Start
 
 ```bash
