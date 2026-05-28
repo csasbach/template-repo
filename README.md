@@ -23,12 +23,12 @@ node scripts/setup.mjs   # Install everything
 
 ## Guiding principles
 
-| Rule | What it prevents |
-|---|---|
-| Evidence before hypothesis | Guessing instead of diagnosing |
-| Self-review at every gate | Confirmation bias, scope creep |
-| Pre-flight & alternatives | Cross-repo blindness, CI waste |
-| Check docs before action | Config errors from memory |
+| Rule                           | What it prevents                     |
+| ------------------------------ | ------------------------------------ |
+| Evidence before hypothesis     | Guessing instead of diagnosing       |
+| Self-review at every gate      | Confirmation bias, scope creep       |
+| Pre-flight & alternatives      | Cross-repo blindness, CI waste       |
+| Check docs before action       | Config errors from memory            |
 | Be a good steward of resources | Wasted CI minutes, tokens, attention |
 
 ## Customizing for your project
