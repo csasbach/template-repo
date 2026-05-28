@@ -24,6 +24,33 @@ Every fix follows strict DAG gates — each gate depends on the previous; no ski
       - What alternative hypotheses were excluded? On what basis?
       - Can I reproduce the failure in under 30 seconds by running the real entry point?
 
+2.6 PRE-FLIGHT & ALTERNATIVES — Before writing any code, audit the full change path:
+
+   a) Audit the target environment — What files, configs, deps actually exist?
+      For each config file you plan to edit: fetch the schema first.
+      For each tool in the plan: version, config format, exit behavior.
+
+   b) Simulate execution — Walk through each command as if running it.
+      What does it read? What exit codes can it produce?
+      Does any assumed file/config/dep not exist?
+
+   c) Integration check — Audit the seams between tools:
+      - Does tool A's output format match tool B's input expectations?
+      - Does the shell reinterpret intermediate data (escaping, quotes)?
+      - Do ordering dependencies exist (tool A changes what tool B expects)?
+      - Do cross-step state dependencies exist (CI step 1 leaves a file
+        that step 3 needs)?
+
+   d) Cross-context delta — For each assumption from a DIFFERENT context:
+      - Cross-repo: "Main repo has lockfile → CI uses npm ci. Target has none → fails."
+      - Cross-platform: "Designed on bash, CI runs PowerShell → echo quoting differs."
+      - Before/after: "My change expects a dep that my change must install first."
+
+   e) Generate at least ONE alternative approach.
+      Compare: complexity, assumptions, CI cost, rollback risk.
+
+   f) Clear winner → proceed. Ambiguous → ask user.
+
 3. EXPERIMENT — Write a failing test that reproduces the exact bug (red).
 
 4. IMPLEMENT — Write minimal code. The test passes (green).
@@ -56,6 +83,14 @@ Every fix follows strict DAG gates — each gate depends on the previous; no ski
 3. **One DAG gate at a time** — No skipping. If a gate fails, go back to the previous gate.
 
 4. **Self-review before every gate transition** — At steps 2.5, 4.5, and 6.5, conduct a structured self-review. A skipped self-review is a process violation.
+
+5. **Check documentation before action** — Before modifying any configuration file, tool integration, or dependency, consult the authoritative reference (schema, API docs, package README). If the docs are unclear, design a minimal read-only experiment to derive the correct behavior (e.g., `--help` output, safe stdout probe). If the experiment would change state (write files, install packages, mutate config), ask the user instead of running it.
+
+6. **Be a good steward of resources** — Every action consumes budget (CI minutes, tokens, network I/O, file operations, human attention). Before acting, ask: "Is this the cheapest way to get the answer?"
+   - Read-only checks (grep, read file, schema fetch) are cheap. Do them before expensive operations.
+   - CI runs cost time and money. Verify locally first.
+   - Ask the user concisely and with options, not open-ended.
+   - Batch related changes into fewer, larger operations when they share the same preconditions.
 
 ### Before Branch Creation
 
