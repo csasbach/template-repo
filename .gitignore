@@ -22,3 +22,6 @@ playwright-report/
 # Coverage
 coverage/
 */coverage/
+
+# Agent session state
+.copilot/wip.md
