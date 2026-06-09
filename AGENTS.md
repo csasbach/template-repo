@@ -33,6 +33,7 @@ Every fix follows strict DAG gates — each gate depends on the previous; no ski
    a) Audit the target environment — What files, configs, deps actually exist?
       For each config file you plan to edit: fetch the schema first.
       For each tool in the plan: version, config format, exit behavior.
+      For `npm run gate` (or equivalent CI gate script): read the script chain in `package.json`. Each sub-command needs the correct working directory and resolved dependencies. If the gate runs tools from the project root that depend on subproject packages, verify the dependency path or run from the subproject directly.
 
    b) Simulate execution — Walk through each command as if running it.
       What does it read? What exit codes can it produce?
@@ -174,6 +175,7 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
        - lint-staged (eslint + prettier)
        - project-specific checks (tsc, fmt)
 5. npm run gate
+   → If gate fails locally, fix before pushing. Do not push red.
 6. Pre-push hooks auto-run:
        - npm ls --production (lock integrity)
        - npm run audit:deps (deprecation check)
@@ -193,6 +195,7 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
 - [ ] AGENTS.md learnings log updated if applicable
 
 **Before every PR, check:**
+
 - ☐ Is the diff unreviewably large? If so, split it (see PR Size Discipline).
 - ☐ Have all assumptions been sourced in the plan?
 - ☐ Has destructive operation audit been performed per 2.6?
@@ -226,13 +229,17 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
 
 If using GitHub Actions, add `.github/workflows/gate.yml` with caching, concurrency, timeout-minutes.
 
+**Pre-Validation (before every push):**
+
+1. `npm run gate` — if this fails locally, fix it before pushing. Do not push red.
+
 ### Dependency Pinning
 
 Production deps exact, dev deps float. Lockfiles committed and enforced.
 
 ## Learnings Log
 
-| Date       | Lesson                                                                     | Codified in        |
-| ---------- | -------------------------------------------------------------------------- | ------------------ |
-| 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push | AGENTS.md, .husky/ |
-| 2026-06-08 | Added DAG-first thinking, session continuity (wip.md), explicit approval per gate, external data rule, claim sourcing, PR size discipline, destructive audit in 2.6 | AGENTS.md |
+| Date       | Lesson                                                                                                                                                              | Codified in        |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push                                                                                          | AGENTS.md, .husky/ |
+| 2026-06-08 | Added DAG-first thinking, session continuity (wip.md), explicit approval per gate, external data rule, claim sourcing, PR size discipline, destructive audit in 2.6 | AGENTS.md          |
