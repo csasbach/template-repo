@@ -205,6 +205,10 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
 - Never push directly to main
 - Zero tolerance: all warnings resolved
 - Agent MUST STOP after creating a PR — No merging without explicit `merge it`
+- Branch protection on `main` requires a PR, green CI and resolved conversations but no GitHub
+  review: `required_approving_review_count` is 0, because GitHub forbids self-approval and this repo
+  has one maintainer. The maintainer's `merge it` is the approval; raise the count when a second
+  collaborator joins.
 - Before pushing to an open PR, get a new review cycle
 - Interpreting `go`, `proceed`, `continue` as merge authorization is a process violation
 
