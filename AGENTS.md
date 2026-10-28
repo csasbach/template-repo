@@ -177,9 +177,9 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
 5. npm run gate
    → If gate fails locally, fix before pushing. Do not push red.
 6. Pre-push hooks auto-run:
-       - npm ls --production (lock integrity)
-       - npm run audit:deps (deprecation check)
-       - project-specific tests
+       - npm ls --production (blocking: lock integrity)
+       - npm run audit:deps and npm run audit (warnings only, non-blocking)
+   (TypeScript and test steps exist in the hook but are commented out until those tools exist.)
 7. [APPROVAL] git push origin fix/descriptive-name
 8. gh pr create — STOP, wait for review
 9. User approves
@@ -218,20 +218,31 @@ Each gate requires explicit user approval. `go` / `proceed` / `continue` do not 
 | `[e2e]`           | Browser test         | No        | Full flow        |
 | `[coverage-safe]` | Low regression value | No        | Improbable input |
 
+Tags describe tests once a runner exists; no test runner is wired yet, so the `test:*` scripts are stubs.
+
 ### Code Quality Gate
 
-- pre-commit: eslint, prettier, type check
-- commit-msg: commitlint
-- pre-push: blocking (lock, tsc, lint, tests) + warning (coverage, audit)
-- manual: npm run gate
+**Scaffold status (2026-10-28):** this template ships the gate's shape, not its teeth. ESLint, a
+test runner and coverage are not configured, so the `TODO` scripts in `package.json` exit 0 and
+`npm run gate` can only check formatting. Wire the real tools before relying on a green gate.
+
+- pre-commit: `lint-staged` — Prettier on `json/md/yaml/yml`; `eslint --fix` on `ts/tsx`, but ESLint
+  is not installed yet, so the first TypeScript commit will fail until it is
+- commit-msg: `commitlint`
+- pre-push: blocking lock-integrity check (`npm ls --production`); `audit:deps` and `npm audit` are
+  warnings only; the TypeScript and test steps are commented out
+- manual: `npm run gate` (scaffold — see above)
 
 ### CI Pipeline
 
-If using GitHub Actions, add `.github/workflows/gate.yml` with caching, concurrency, timeout-minutes.
+`.github/workflows/gate.yml` runs on `windows-latest` (Node 22, 30-minute timeout, concurrency
+cancellation): `npm install`, then `npm run gate`. **A green run is not evidence of quality** — the
+gate is a scaffold, so CI can only catch formatting and lockfile drift. It caches nothing, declares
+no permissions, and uses `npm install` rather than `npm ci`.
 
 **Pre-Validation (before every push):**
 
-1. `npm run gate` — if this fails locally, fix it before pushing. Do not push red.
+1. `npm run gate` — it can still fail on formatting. Do not push red.
 
 ### Dependency Pinning
 
@@ -239,7 +250,8 @@ Production deps exact, dev deps float. Lockfiles committed and enforced.
 
 ## Learnings Log
 
-| Date       | Lesson                                                                                                                                                              | Codified in        |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
-| 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push                                                                                          | AGENTS.md, .husky/ |
-| 2026-06-08 | Added DAG-first thinking, session continuity (wip.md), explicit approval per gate, external data rule, claim sourcing, PR size discipline, destructive audit in 2.6 | AGENTS.md          |
+| Date       | Lesson                                                                                                                                                              | Codified in             |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------- |
+| 2026-05-27 | Template backported with self-review gates, CI template, blocking pre-push                                                                                          | AGENTS.md, .husky/      |
+| 2026-06-08 | Added DAG-first thinking, session continuity (wip.md), explicit approval per gate, external data rule, claim sourcing, PR size discipline, destructive audit in 2.6 | AGENTS.md               |
+| 2026-10-28 | Gate claims corrected to scaffold reality (no ESLint/tests; hooks block lock integrity only); banner added to `npm run gate`                                        | AGENTS.md, package.json |
