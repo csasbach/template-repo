@@ -15,7 +15,7 @@
     "test:spa:fast": "echo TODO: add npx vitest run --testNamePattern in client",
     "test:all": "npm run test:api && npm run test:spa",
     "build": "echo TODO: add npm run build",
-    "gate": "npm run lint && npm run format:check && npm run test:spa && echo TODO: add coverage + build"
+    "gate": "node -e \"console.warn('[template-repo] gate is a SCAFFOLD: only Prettier formatting is checked; lint, tests and coverage are TODO stubs.')\" && npm run lint && npm run format:check && npm run test:spa && echo TODO: add coverage + build"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.1",
